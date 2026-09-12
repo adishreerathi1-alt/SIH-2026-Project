@@ -23,7 +23,6 @@ import {
   ChevronRight
 } from "lucide-react";
 import Navbar from "../components/Navbar";
-import { ScreenTabs } from "../components/ScreenTabs";
 import { useTheme } from "../ThemeContext";
 import { useAuth } from "../AuthContext";
 
@@ -211,13 +210,11 @@ export default function SquadOverview() {
       </div>
 
       {/* ================= SUB-NAVIGATION TABS ================= */}
-      <div className={`border-b px-4 sm:px-6 lg:px-8 py-2 text-xs font-mono transition-colors ${theme === "bright"
+      <div className={`border-b px-4 sm:px-6 lg:px-8 py-2 text-xs font-mono transition-colors lg:contents ${theme === "bright"
           ? "bg-white/60 border-emerald-200/60"
           : "bg-slate-900/60 border-slate-800"
         }`}>
         <div className="mx-auto max-w-[1720px] flex flex-wrap items-center justify-between gap-3">
-          <ScreenTabs active="team" />
-
           <span className="font-mono text-[10px] text-emerald-400 font-semibold uppercase tracking-wider hidden sm:inline">
             LIVE MONITORING ACTIVE
           </span>

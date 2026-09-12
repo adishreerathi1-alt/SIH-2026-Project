@@ -13,7 +13,6 @@ import {
   Watch,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
-import { ScreenTabs } from "../components/ScreenTabs";
 import { useTheme } from "../ThemeContext";
 import { useAuth } from "../AuthContext";
 
@@ -139,15 +138,6 @@ export default function MissionReview() {
               SOS / Urgent Help
             </button>
           </div>
-        </div>
-      </div>
-
-      <div
-        className={`border-b px-4 sm:px-6 lg:px-8 py-2 text-xs font-mono ${theme === "bright" ? "bg-slate-100 border-slate-200" : "bg-slate-900/60 border-slate-800"
-          }`}
-      >
-        <div className="mx-auto max-w-[1720px]">
-          <ScreenTabs active="debrief" />
         </div>
       </div>
 

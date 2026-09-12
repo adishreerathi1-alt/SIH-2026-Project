@@ -30,7 +30,15 @@ import {
   Compass
 } from "lucide-react";
 import Navbar from "../components/Navbar";
-import { ScreenTabs } from "../components/ScreenTabs";
+import { analyzeJournalText } from "../lib/nlpWellness";
+import {
+  combineReadings,
+  EMPTY_FACE,
+  EMPTY_VOICE,
+  persistScan,
+  readLastScan,
+  readScanHistory,
+} from "../lib/scanTypes";
 import { useTheme } from "../ThemeContext";
 import { useAuth } from "../AuthContext";
 
@@ -60,6 +68,14 @@ export default function WellnessHub() {
   const [overallMood, setOverallMood] = useState<string>("Good");
   const [customNote, setCustomNote] = useState<string>("");
   const [checkinCompleted, setCheckinCompleted] = useState<boolean>(false);
+  const [lastScan, setLastScan] = useState<ReturnType<typeof readLastScan>>(null);
+  const [scanHistory, setScanHistory] = useState<ReturnType<typeof readScanHistory>>([]);
+  const noteNlp = analyzeJournalText(customNote);
+
+  useEffect(() => {
+    setLastScan(readLastScan());
+    setScanHistory(readScanHistory());
+  }, [checkinCompleted, activeSubTab]);
 
   // Guided Breathing State
   const [breathingActive, setBreathingActive] = useState(false);
@@ -88,6 +104,11 @@ export default function WellnessHub() {
   }, [breathingActive]);
 
   const handleCompleteCheckin = () => {
+    const nlp = analyzeJournalText(customNote);
+    const previous = readLastScan();
+    persistScan(
+      combineReadings(previous?.face ?? EMPTY_FACE, previous?.voice ?? EMPTY_VOICE, nlp)
+    );
     setCheckinCompleted(true);
     setTimeout(() => {
       setActiveSubTab("progress");
@@ -144,14 +165,12 @@ export default function WellnessHub() {
       </div>
 
       {/* ================= SUB-NAVIGATION TABS ================= */}
-      <div className={`border-b px-4 sm:px-6 lg:px-8 py-2 text-xs font-mono transition-colors ${
+      <div className={`border-b px-4 sm:px-6 lg:px-8 py-2 text-xs font-mono transition-colors lg:contents ${
         theme === "bright"
           ? "bg-slate-100 border-slate-200"
           : "bg-slate-900/60 border-slate-800"
       }`}>
         <div className="mx-auto max-w-[1720px] flex items-center justify-between">
-          <ScreenTabs active="wellness" />
-
           {/* Local Sub-tabs: Daily check-in vs My progress */}
           <div className="flex items-center gap-1 rounded-xl bg-slate-200 dark:bg-slate-950 p-1 border border-slate-300 dark:border-slate-800">
             <button
@@ -352,6 +371,17 @@ export default function WellnessHub() {
                         placeholder="Keep it as general or as specific as you feel comfortable..."
                         className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-4 text-xs font-sans text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-cyan-500 transition"
                       />
+                      {noteNlp.wordCount > 0 && (
+                        <p className="text-[11px] text-slate-500">
+                          On-device NLP: {noteNlp.mood}
+                          {noteNlp.cues.length ? ` · ${noteNlp.cues.join(", ")}` : ""}. The note itself is not uploaded.
+                        </p>
+                      )}
+                      {noteNlp.crisisFlag && (
+                        <a href="tel:988" className="text-[11px] font-bold text-rose-500">
+                          If you feel unsafe, call 988. This text stays on your device.
+                        </a>
+                      )}
                     </div>
 
                     {/* Action buttons */}
@@ -392,16 +422,6 @@ export default function WellnessHub() {
                   </h3>
                   <p className="mt-2 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
                     Your individual answers are for your wellbeing journey. Managers see aggregated team patterns rather than private notes.
-                  </p>
-                </div>
-
-                {/* Side Card 2: Quote Card (Dark Box) */}
-                <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6 text-white shadow-xl relative overflow-hidden">
-                  <span className="font-serif text-5xl text-cyan-400/40 block leading-none select-none">
-                    “
-                  </span>
-                  <p className="mt-1 text-sm font-semibold leading-relaxed text-slate-100">
-                    Small check-ins create better conversations before problems become bigger.
                   </p>
                 </div>
 
@@ -630,6 +650,21 @@ export default function WellnessHub() {
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-1 mb-6">
                   Your pattern
                 </h3>
+
+                {lastScan && (
+                  <div className="mb-4 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4 text-xs">
+                    <span className="font-mono text-[10px] font-bold text-cyan-600 dark:text-cyan-300">
+                      LAST OFFLINE SCAN
+                    </span>
+                    <p className="mt-1 font-semibold text-slate-900 dark:text-white">
+                      {lastScan.overallMood} · stress {lastScan.stressScore}
+                    </p>
+                    <p className="mt-1 text-slate-600 dark:text-slate-400">{lastScan.advice}</p>
+                    <p className="mt-1 font-mono text-[10px] text-slate-500">
+                      Face {lastScan.face.mood} · Voice {lastScan.voice.mood} · NLP {lastScan.nlp.mood}
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex flex-col divide-y divide-slate-200 dark:divide-slate-800 font-mono text-xs">
                   {/* Today */}

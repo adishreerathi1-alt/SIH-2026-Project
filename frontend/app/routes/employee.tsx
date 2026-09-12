@@ -1,16 +1,10 @@
 import React, { useState } from "react";
 import type { Route } from "./+types/employee";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Shield,
   Moon,
   Sun,
-  Activity,
-  BarChart2,
-  HeartHandshake,
-  ClipboardCheck,
-  Calendar,
   Sparkles,
   TrendingUp,
   TrendingDown,
@@ -18,18 +12,16 @@ import {
   Sliders,
   CheckCircle2,
   Lock,
-  LogOut,
   ChevronDown,
   ArrowRight,
   User,
-  Users,
-  Compass,
-  Cpu,
   Info,
   X
 } from "lucide-react";
 import { useTheme } from "../ThemeContext";
 import { useAuth } from "../AuthContext";
+import { readLastScan } from "../lib/scanTypes";
+import Navbar from "../components/Navbar";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -44,8 +36,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function EmployeeDashboard() {
   const { theme, cycleTheme } = useTheme();
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Active navigation section
   const [activeTab, setActiveTab] = useState<"overview" | "checkin" | "progress" | "privacy">("overview");
@@ -119,163 +110,14 @@ export default function EmployeeDashboard() {
 
   return (
     <div
-      className={`min-h-screen flex flex-col md:flex-row font-sans transition-colors duration-300 ${
+      className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${
         theme === "bright"
           ? "bg-[#edf2f7] text-[#0f172a]"
           : "bg-[#070e16] text-slate-100"
       }`}
     >
-      {/* ========================================================================= */}
-      {/* LEFT SIDEBAR (Dark Slate / High Contrast, matching the reference image)   */}
-      {/* ========================================================================= */}
-      <aside
-        className={`w-full md:w-64 lg:w-72 shrink-0 border-r flex flex-col justify-between p-5 md:min-h-screen transition-colors ${
-          theme === "bright"
-            ? "bg-[#0e1724] border-[#1e293b] text-white shadow-lg"
-            : "bg-[#070e17] border-slate-800/80 text-white"
-        }`}
-      >
-        <div>
-          {/* Brand Logo & Name */}
-          <Link
-            to="/"
-            className="flex items-center gap-3 px-2 py-3 rounded-xl hover:bg-white/5 transition group"
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/40 text-emerald-400 shadow-md shadow-emerald-500/10 group-hover:scale-105 transition-transform">
-              <Shield className="h-5 w-5" />
-            </div>
-            <div>
-              <span className="font-mono text-base font-black tracking-wider text-white">
-                RAKSHAK AI
-              </span>
-              <span className="block font-mono text-[9px] text-emerald-400 tracking-tight uppercase">
-                Biometric Protection
-              </span>
-            </div>
-          </Link>
+      <Navbar />
 
-          {/* Primary Navigation */}
-          <nav className="mt-8 flex flex-col gap-1.5">
-            <button
-              onClick={() => setActiveTab("overview")}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition text-left ${
-                activeTab === "overview"
-                  ? "bg-white/10 text-white font-bold border-l-2 border-emerald-400 shadow-sm"
-                  : "text-slate-400 hover:text-slate-100 hover:bg-white/5"
-              }`}
-            >
-              <Compass className="h-4 w-4 text-emerald-400" />
-              <span>Overview</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setActiveTab("checkin");
-                setShowCheckInModal(true);
-              }}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition text-left ${
-                activeTab === "checkin"
-                  ? "bg-white/10 text-white font-bold border-l-2 border-emerald-400"
-                  : "text-slate-400 hover:text-slate-100 hover:bg-white/5"
-              }`}
-            >
-              <Calendar className="h-4 w-4 text-cyan-400" />
-              <span>Daily check-in</span>
-            </button>
-
-            <Link
-              to="/tac-sync"
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition text-slate-400 hover:text-slate-100 hover:bg-white/5"
-            >
-              <Activity className="h-4 w-4 text-sky-400" />
-              <span>My progress</span>
-            </Link>
-
-            <Link
-              to="/wellness"
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition text-slate-400 hover:text-slate-100 hover:bg-white/5"
-            >
-              <Lock className="h-4 w-4 text-teal-400" />
-              <span>Privacy &amp; profile</span>
-            </Link>
-          </nav>
-
-          {/* Quick Access to Inside Features (Preserving all inside tools!) */}
-          <div className="mt-8 pt-5 border-t border-slate-800/80">
-            <span className="block font-mono text-[10px] text-slate-500 uppercase tracking-widest px-2 mb-2">
-              Inside Features
-            </span>
-            <div className="flex flex-col gap-1">
-              <Link
-                to="/predictive"
-                className="flex items-center justify-between px-3 py-2 rounded-lg text-[11px] text-slate-400 hover:text-amber-300 hover:bg-white/5 transition"
-              >
-                <span className="flex items-center gap-2">
-                  <BarChart2 className="h-3.5 w-3.5 text-amber-400" />
-                  AI Forecast
-                </span>
-                <span className="font-mono text-[9px] text-slate-500">Live</span>
-              </Link>
-              <Link
-                to="/wellness"
-                className="flex items-center justify-between px-3 py-2 rounded-lg text-[11px] text-slate-400 hover:text-teal-300 hover:bg-white/5 transition"
-              >
-                <span className="flex items-center gap-2">
-                  <HeartHandshake className="h-3.5 w-3.5 text-teal-400" />
-                  Wellness &amp; Breathing
-                </span>
-                <span className="font-mono text-[9px] text-slate-500">4-4-4</span>
-              </Link>
-              <Link
-                to="/debrief"
-                className="flex items-center justify-between px-3 py-2 rounded-lg text-[11px] text-slate-400 hover:text-sky-300 hover:bg-white/5 transition"
-              >
-                <span className="flex items-center gap-2">
-                  <ClipboardCheck className="h-3.5 w-3.5 text-sky-400" />
-                  Mission Debrief
-                </span>
-                <span className="font-mono text-[9px] text-slate-500">Log</span>
-              </Link>
-              <Link
-                to="/squad"
-                className="flex items-center justify-between px-3 py-2 rounded-lg text-[11px] text-slate-400 hover:text-emerald-300 hover:bg-white/5 transition"
-              >
-                <span className="flex items-center gap-2">
-                  <Users className="h-3.5 w-3.5 text-emerald-400" />
-                  Squad Overview
-                </span>
-                <span className="font-mono text-[9px] text-slate-500">Team</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Sidebar Note & Log Out */}
-        <div className="pt-6 border-t border-slate-800/80">
-          <div className="flex items-start gap-2 mb-4 px-1">
-            <Lock className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
-            <p className="font-mono text-[10px] text-slate-400 leading-snug">
-              Your personal check-ins are private by default
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              logout();
-              navigate("/");
-            }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition"
-          >
-            <LogOut className="h-4 w-4 text-slate-400" />
-            <span>Log out</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* ========================================================================= */}
-      {/* MAIN CONTENT CANVAS (Clean, simple, high contrast)                        */}
-      {/* ========================================================================= */}
       <main className="flex-1 flex flex-col p-4 sm:p-6 lg:p-10 max-w-7xl mx-auto w-full">
         {/* Top Header Row */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6">

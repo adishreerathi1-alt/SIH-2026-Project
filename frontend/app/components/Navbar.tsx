@@ -5,7 +5,6 @@ import {
   Activity,
   Sun,
   Moon,
-  Radio,
   Cpu,
   BarChart2,
   HeartHandshake,
@@ -48,6 +47,15 @@ export const Navbar: React.FC = () => {
   const isDebrief = location.pathname.startsWith("/debrief");
   const isSquad = location.pathname.startsWith("/squad");
   const isCommander = user?.role === "commander";
+
+  const navClass = (active: boolean, activeColor: string) =>
+    `flex items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-[11px] font-semibold tracking-wide transition-all ${
+      active
+        ? activeColor
+        : theme === "bright"
+        ? "text-slate-700 hover:text-slate-950 hover:bg-slate-200/80 font-bold"
+        : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+    }`;
 
   const switchRole = (role: UserRole) => {
     setLoginRole(role);
@@ -106,15 +114,6 @@ export const Navbar: React.FC = () => {
     else navigate("/employee");
   };
 
-  const navClass = (active: boolean, activeColor: string) =>
-    `flex items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-[11px] font-semibold tracking-wide transition-all ${
-      active
-        ? activeColor
-        : theme === "bright"
-        ? "text-slate-700 hover:text-slate-950 hover:bg-slate-200/80 font-bold"
-        : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
-    }`;
-
   return (
     <>
       <header
@@ -161,6 +160,7 @@ export const Navbar: React.FC = () => {
             </Link>
 
             <nav
+              aria-label="Primary navigation"
               className={`hidden lg:flex items-center gap-1 rounded-full border p-1 backdrop-blur-md ${
                 theme === "bright" ? "border-slate-300 bg-white/90 shadow-sm" : "border-slate-800 bg-slate-900/80"
               }`}
@@ -177,32 +177,23 @@ export const Navbar: React.FC = () => {
                 <Activity className="h-3.5 w-3.5" />
                 Readiness
               </Link>
-              <Link
-                to="/predictive"
-                className={navClass(isPredictive, "bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30")}
-              >
+              <Link to="/predictive" className={navClass(isPredictive, "bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30")}>
                 <BarChart2 className="h-3.5 w-3.5" />
                 Forecast
               </Link>
-              <Link
-                to="/wellness"
-                className={navClass(isWellness, "bg-teal-500/20 text-teal-600 dark:text-teal-400 border border-teal-500/30")}
-              >
+              <Link to="/wellness" className={navClass(isWellness, "bg-teal-500/20 text-teal-600 dark:text-teal-400 border border-teal-500/30")}>
                 <HeartHandshake className="h-3.5 w-3.5" />
                 Wellness
               </Link>
-              <Link
-                to="/debrief"
-                className={navClass(isDebrief, "bg-sky-500/20 text-sky-600 dark:text-sky-300 border border-sky-500/30")}
-              >
+              <Link to="/scan" className={navClass(location.pathname.startsWith("/scan"), "bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30")}>
+                Offline Scan
+              </Link>
+              <Link to="/debrief" className={navClass(isDebrief, "bg-sky-500/20 text-sky-600 dark:text-sky-300 border border-sky-500/30")}>
                 <ClipboardCheck className="h-3.5 w-3.5" />
                 Mission Review
               </Link>
               {isCommander && (
-                <Link
-                  to="/squad"
-                  className={navClass(isSquad, "bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40")}
-                >
+                <Link to="/squad" className={navClass(isSquad, "bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40")}>
                   <Users className="h-3.5 w-3.5" />
                   Team
                 </Link>
@@ -211,17 +202,6 @@ export const Navbar: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <div
-              className={`hidden lg:flex items-center gap-2 rounded-lg border px-3 py-1 font-mono text-xs ${
-                theme === "bright"
-                  ? "border-emerald-400/80 bg-emerald-100 text-emerald-950 font-bold"
-                  : "border-emerald-500/20 bg-emerald-950/30 text-emerald-400"
-              }`}
-            >
-              <Radio className="h-3.5 w-3.5 animate-pulse text-emerald-500" />
-              <span className="font-semibold">SENSORS LIVE</span>
-            </div>
-
             <button
               onClick={cycleTheme}
               type="button"

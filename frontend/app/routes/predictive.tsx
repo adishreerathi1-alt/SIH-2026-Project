@@ -29,7 +29,6 @@ import {
   Wind
 } from "lucide-react";
 import Navbar from "../components/Navbar";
-import { ScreenTabs } from "../components/ScreenTabs";
 import { useTheme } from "../ThemeContext";
 import { useAuth } from "../AuthContext";
 
@@ -142,10 +141,8 @@ export default function PredictiveScreen() {
           </div>
         </div>
       </div>
-
-
-
       {/* ================= MAIN DASHBOARD CONTENT (3-COLUMN GRID MATCHING SCREENSHOT) ================= */}
+
       <main className="mx-auto max-w-[1720px] w-full px-4 sm:px-6 lg:px-8 py-6 flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 

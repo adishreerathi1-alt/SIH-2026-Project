@@ -3,12 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "react-router build",
+    "build": "react-router build --config vite.config.ts",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.14",
     "@react-router/node": "^8",
     "@react-router/serve": "^8",
     "clsx": "^2.1.1",

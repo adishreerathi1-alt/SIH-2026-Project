@@ -26,7 +26,8 @@ import {
   ChevronRight,
   Info,
   Users,
-  ClipboardList
+  ClipboardList,
+  ScanFace,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import { useTheme } from "../ThemeContext";
@@ -274,6 +275,14 @@ export default function NexusHome() {
                 >
                   <HeartHandshake className="h-4 w-4 text-teal-400" />
                   <span>WELLNESS HUB</span>
+                </Link>
+
+                <Link
+                  to="/scan"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-violet-500/40 bg-violet-950/40 hover:bg-violet-900/50 px-4 py-3.5 font-mono text-xs sm:text-sm font-bold text-violet-300 transition-all active:scale-95"
+                >
+                  <ScanFace className="h-4 w-4 text-violet-300" />
+                  <span>Face & Voice</span>
                 </Link>
 
                 <Link
@@ -614,6 +623,9 @@ export default function NexusHome() {
             </Link>
             <Link to="/predictive" className="hover:text-amber-400 transition">
               Stress Forecast
+            </Link>
+            <Link to="/scan" className="hover:text-violet-400 transition">
+              Face & Voice
             </Link>
             <Link to="/debrief" className="hover:text-cyan-400 transition">
               Mission Review

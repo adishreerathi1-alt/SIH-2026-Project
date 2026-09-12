@@ -12,4 +12,5 @@ export default [
   route("wellness", "routes/wellness.tsx"),
   route("squad", "routes/squad.tsx"),
   route("debrief", "routes/debrief.tsx"),
+  route("scan", "routes/scan.tsx"),
 ] satisfies RouteConfig;

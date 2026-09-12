@@ -19,6 +19,20 @@ def add_personnel():
     })
 
 
+@app.route("/api/v1/scan/summary", methods=["POST"])
+def scan_summary():
+    """Wellness scans are designed to stay on-device. This endpoint refuses media."""
+    data = request.json or {}
+    if data.get("video") or data.get("audio") or data.get("transcript") or data.get("note"):
+        return jsonify({
+            "error": "Rejected. Do not upload video, audio, transcripts, or journal text.",
+        }), 400
+    return jsonify({
+        "accepted": False,
+        "message": "Face, voice, and NLP run in the browser. Server storage is disabled for confidentiality.",
+    }), 200
+
+
 @app.route('/api/v1/dashboard/stats', methods=['GET'])
 def get_dashboard_stats():
     return jsonify({
