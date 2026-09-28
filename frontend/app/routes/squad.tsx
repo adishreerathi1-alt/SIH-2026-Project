@@ -156,7 +156,7 @@ export default function SquadOverview() {
 
   return (
     <div className={`flex flex-col min-h-screen font-sans transition-colors duration-300 ${theme === "bright"
-        ? "bg-[#edf2f7] text-[#0f172a]"
+        ? "bg-[#f8fafc] text-slate-900"
         : "bg-[#050b11] text-slate-100"
       }`}>
       {/* Top Navbar */}
@@ -164,7 +164,7 @@ export default function SquadOverview() {
 
       {/* ================= SQUAD TOP STATUS BAR ================= */}
       <div className={`border-b px-4 sm:px-6 lg:px-8 py-3 transition-colors ${theme === "bright"
-          ? "bg-white/85 border-emerald-200/80 shadow-sm"
+          ? "bg-white/95 border-slate-200 shadow-sm"
           : "bg-slate-950/80 border-slate-800"
         }`}>
         <div className="mx-auto max-w-[1720px] flex flex-wrap items-center justify-between gap-4">

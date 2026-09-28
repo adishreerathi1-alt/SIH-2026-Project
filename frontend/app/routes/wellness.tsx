@@ -38,6 +38,7 @@ import {
   persistScan,
   readLastScan,
   readScanHistory,
+  type WellnessCheckIn,
 } from "../lib/scanTypes";
 import { useTheme } from "../ThemeContext";
 import { useAuth } from "../AuthContext";
@@ -54,6 +55,56 @@ export function meta({}: Route.MetaArgs) {
 }
 
 type TabType = "checkin" | "progress" | "breathing" | "support";
+type CheckInAnswerKey = Exclude<keyof WellnessCheckIn, "note" | "completedAt">;
+type CheckInAnswers = Pick<WellnessCheckIn, CheckInAnswerKey>;
+
+const CHECKIN_QUESTIONS: Array<{
+  key: CheckInAnswerKey;
+  eyebrow: string;
+  prompt: string;
+  helper?: string;
+  options: string[];
+}> = [
+  {
+    key: "mood",
+    eyebrow: "MOOD",
+    prompt: "How are you feeling overall today?",
+    options: ["Very low", "Low", "Okay", "Good", "Very good"],
+  },
+  {
+    key: "stress",
+    eyebrow: "STRESS",
+    prompt: "How high is your stress right now?",
+    options: ["Not at all", "Low", "Moderate", "High", "Very high"],
+  },
+  {
+    key: "workload",
+    eyebrow: "WORKLOAD",
+    prompt: "How does your current workload feel?",
+    options: ["Manageable", "Busy but balanced", "Demanding", "Heavy", "Overwhelming"],
+  },
+  {
+    key: "sleep",
+    eyebrow: "SLEEP",
+    prompt: "How was your sleep last night?",
+    helper: "Choose the closest description of your hours or sleep quality.",
+    options: ["Less than 4 hours", "4–5 hours", "6–7 hours", "8+ hours", "Restless / poor quality"],
+  },
+  {
+    key: "energy",
+    eyebrow: "ENERGY",
+    prompt: "How is your energy right now?",
+    options: ["Very low", "Low", "Okay", "Good", "High"],
+  },
+  {
+    key: "restingHeartRate",
+    eyebrow: "RESTING HEART-RATE INDICATOR",
+    prompt: "Compared with usual, what have you noticed about your resting heart rate?",
+    helper:
+      "This is an optional-to-observe, subjective check-in—not a diagnosis. You do not need to measure or enter a precise bpm.",
+    options: ["About usual", "A little higher", "Much higher", "Unsure / not tracked"],
+  },
+];
 
 export default function WellnessHub() {
   const { theme } = useTheme();
@@ -62,10 +113,16 @@ export default function WellnessHub() {
 
   const [activeSubTab, setActiveSubTab] = useState<TabType>("checkin");
 
-  // Daily Check-in Step (1 to 5)
-  const [checkinStep, setCheckinStep] = useState<number>(4); // Default to Step 4/5 like image 3 & 1
-  const [energyLevel, setEnergyLevel] = useState<string>("Low");
-  const [overallMood, setOverallMood] = useState<string>("Good");
+  const [checkinStep, setCheckinStep] = useState<number>(1);
+  const [checkinReviewing, setCheckinReviewing] = useState(false);
+  const [checkInAnswers, setCheckInAnswers] = useState<CheckInAnswers>({
+    mood: "",
+    stress: "",
+    workload: "",
+    sleep: "",
+    energy: "",
+    restingHeartRate: "",
+  });
   const [customNote, setCustomNote] = useState<string>("");
   const [checkinCompleted, setCheckinCompleted] = useState<boolean>(false);
   const [lastScan, setLastScan] = useState<ReturnType<typeof readLastScan>>(null);
@@ -76,6 +133,15 @@ export default function WellnessHub() {
     setLastScan(readLastScan());
     setScanHistory(readScanHistory());
   }, [checkinCompleted, activeSubTab]);
+
+  useEffect(() => {
+    const savedCheckIn = readLastScan()?.checkIn;
+    if (savedCheckIn) {
+      const { note: _note, completedAt: _completedAt, ...answers } = savedCheckIn;
+      setCheckInAnswers(answers);
+      setCustomNote(savedCheckIn.note ?? "");
+    }
+  }, []);
 
   // Guided Breathing State
   const [breathingActive, setBreathingActive] = useState(false);
@@ -103,13 +169,37 @@ export default function WellnessHub() {
     return () => clearInterval(interval);
   }, [breathingActive]);
 
+  const currentQuestion = CHECKIN_QUESTIONS[checkinStep - 1];
+  const allQuestionsAnswered = CHECKIN_QUESTIONS.every(
+    ({ key }) => Boolean(checkInAnswers[key])
+  );
+
+  const handleContinueCheckin = () => {
+    if (!currentQuestion || !checkInAnswers[currentQuestion.key]) return;
+    if (checkinStep < CHECKIN_QUESTIONS.length) {
+      setCheckinStep((step) => step + 1);
+      return;
+    }
+    setCheckinReviewing(true);
+  };
+
   const handleCompleteCheckin = () => {
+    if (!allQuestionsAnswered) return;
     const nlp = analyzeJournalText(customNote);
     const previous = readLastScan();
+    const checkIn: WellnessCheckIn = {
+      ...checkInAnswers,
+      note: customNote.trim() || undefined,
+      completedAt: new Date().toISOString(),
+    };
     persistScan(
-      combineReadings(previous?.face ?? EMPTY_FACE, previous?.voice ?? EMPTY_VOICE, nlp)
+      {
+        ...combineReadings(previous?.face ?? EMPTY_FACE, previous?.voice ?? EMPTY_VOICE, nlp),
+        checkIn,
+      }
     );
     setCheckinCompleted(true);
+    setCheckinReviewing(false);
     setTimeout(() => {
       setActiveSubTab("progress");
     }, 1200);
@@ -118,7 +208,7 @@ export default function WellnessHub() {
   return (
     <div className={`flex flex-col min-h-screen font-sans transition-colors duration-300 ${
       theme === "bright"
-        ? "bg-[#edf2f7] text-[#0f172a]"
+        ? "bg-[#f8fafc] text-slate-900"
         : "bg-[#070e16] text-slate-100"
     }`}>
       {/* Top Navbar */}
@@ -133,7 +223,7 @@ export default function WellnessHub() {
         <div className="mx-auto max-w-[1720px] flex flex-wrap items-center justify-between gap-4">
           
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-400">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-500/20 border border-teal-500/40 text-teal-400">
               <Shield className="h-4 w-4" />
             </div>
             <div>
@@ -236,168 +326,189 @@ export default function WellnessHub() {
                   ? "bg-white border-slate-200 shadow-sm"
                   : "bg-slate-900/80 border-slate-800 shadow-xl"
               }`}>
-                {/* Header Strip */}
                 <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                   <span className="font-mono text-xs font-bold text-slate-500 dark:text-slate-400">
                     Today&apos;s check-in
                   </span>
                   <span className="font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    {checkinStep} of 5
+                    {checkinStep} of {CHECKIN_QUESTIONS.length}
                   </span>
                 </div>
 
-                {/* Progress Line */}
-                <div className="mt-2 h-1 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  className="mt-2 h-1 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800"
+                  aria-label={`Check-in progress: ${checkinStep} of ${CHECKIN_QUESTIONS.length}`}
+                  role="progressbar"
+                  aria-valuemin={1}
+                  aria-valuemax={CHECKIN_QUESTIONS.length}
+                  aria-valuenow={checkinStep}
+                >
                   <div
                     className="h-full bg-cyan-500 transition-all duration-300"
-                    style={{ width: `${(checkinStep / 5) * 100}%` }}
+                    style={{ width: `${(checkinStep / CHECKIN_QUESTIONS.length) * 100}%` }}
                   />
                 </div>
 
-                {/* STEP 4: ENERGY QUESTION (From Image 3) */}
-                {checkinStep === 4 && (
-                  <div className="mt-8 flex flex-col gap-6">
+                {!checkinReviewing && currentQuestion && (
+                  <div className="mt-8 flex flex-col gap-6" aria-live="polite">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 font-mono text-xs font-bold border border-cyan-500/40">
-                        04
+                      <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-cyan-500/40 bg-cyan-500/20 font-mono text-xs font-bold text-cyan-600 dark:text-cyan-400">
+                        {String(checkinStep).padStart(2, "0")}
                       </span>
                       <span className="font-mono text-xs font-bold uppercase tracking-widest text-cyan-600 dark:text-cyan-400">
-                        ENERGY
+                        {currentQuestion.eyebrow}
                       </span>
                     </div>
 
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                      How is your energy right now?
-                    </h2>
-
-                    {/* 5 Energy Option Pills */}
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                      {[
-                        { label: "Very low", symbol: "🕒" },
-                        { label: "Low", symbol: "🌓" },
-                        { label: "Okay", symbol: "🌕" },
-                        { label: "Good", symbol: "🌔" },
-                        { label: "High", symbol: "⭐" },
-                      ].map((item) => {
-                        const isSelected = energyLevel === item.label;
-                        return (
-                          <button
-                            key={item.label}
-                            onClick={() => setEnergyLevel(item.label)}
-                            className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all ${
-                              isSelected
-                                ? "border-cyan-500 bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 font-bold ring-2 ring-cyan-500/30"
-                                : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-slate-700 dark:text-slate-300 hover:border-cyan-400"
-                            }`}
-                          >
-                            <span className="text-lg mb-2">{item.symbol}</span>
-                            <span className="text-xs font-semibold">{item.label}</span>
-                          </button>
-                        );
-                      })}
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+                        {currentQuestion.prompt}
+                      </h2>
+                      {currentQuestion.helper && (
+                        <p className="mt-2 max-w-2xl text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                          {currentQuestion.helper}
+                        </p>
+                      )}
                     </div>
 
-                    <div className="mt-6 flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-4">
-                      <button
-                        onClick={() => setCheckinStep(3)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 font-mono text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-                      >
-                        ← Back
-                      </button>
+                    <fieldset>
+                      <legend className="sr-only">{currentQuestion.prompt}</legend>
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {currentQuestion.options.map((option) => {
+                          const isSelected = checkInAnswers[currentQuestion.key] === option;
+                          return (
+                            <button
+                              key={option}
+                              type="button"
+                              aria-pressed={isSelected}
+                              onClick={() =>
+                                setCheckInAnswers((answers) => ({
+                                  ...answers,
+                                  [currentQuestion.key]: option,
+                                }))
+                              }
+                              className={`flex min-h-[58px] items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
+                                isSelected
+                                  ? "border-cyan-500 bg-cyan-500/10 text-cyan-700 ring-2 ring-cyan-500/30 dark:text-cyan-300"
+                                  : "border-slate-200 bg-slate-50 text-slate-700 hover:border-cyan-400 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-300"
+                              }`}
+                            >
+                              <span>{option}</span>
+                              {isSelected && <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden="true" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </fieldset>
 
+                    {currentQuestion.key === "restingHeartRate" && (
+                      <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-700 dark:text-amber-300">
+                        This observation stays separate from measured sensor data and does not indicate a medical conclusion.
+                      </p>
+                    )}
+
+                    {checkinStep === CHECKIN_QUESTIONS.length && (
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300" htmlFor="checkin-note">
+                          Anything else you&apos;d like to share?{" "}
+                          <span className="font-normal text-slate-500">Optional</span>
+                        </label>
+                        <textarea
+                          id="checkin-note"
+                          rows={3}
+                          value={customNote}
+                          onChange={(e) => setCustomNote(e.target.value)}
+                          placeholder="Keep it as general or as specific as you feel comfortable..."
+                          className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-900 placeholder-slate-400 transition focus:border-cyan-500 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+                        />
+                        {noteNlp.wordCount > 0 && (
+                          <p className="text-[11px] text-slate-500">
+                            On-device NLP: {noteNlp.mood}
+                            {noteNlp.cues.length ? ` · ${noteNlp.cues.join(", ")}` : ""}. The note itself is not uploaded.
+                          </p>
+                        )}
+                        {noteNlp.crisisFlag && (
+                          <a href="tel:988" className="text-[11px] font-bold text-rose-500">
+                            If you feel unsafe, call 988. This text stays on your device.
+                          </a>
+                        )}
+                      </div>
+                    )}
+
+                    {!checkInAnswers[currentQuestion.key] && (
+                      <p className="text-xs font-semibold text-amber-600 dark:text-amber-400" role="alert">
+                        Select an answer to continue.
+                      </p>
+                    )}
+
+                    <div className="mt-2 flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-800">
                       <button
-                        onClick={() => setCheckinStep(5)}
-                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 font-mono text-xs font-bold text-slate-950 shadow-md shadow-cyan-500/20 transition"
+                        type="button"
+                        onClick={() => setCheckinStep((step) => Math.max(1, step - 1))}
+                        disabled={checkinStep === 1}
+                        className="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 font-mono text-xs font-bold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                       >
-                        <span>Continue</span>
+                        <ArrowLeft className="h-4 w-4" /> Back
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleContinueCheckin}
+                        disabled={!checkInAnswers[currentQuestion.key]}
+                        className="flex items-center gap-2 rounded-xl bg-cyan-500 px-6 py-2.5 font-mono text-xs font-bold text-slate-950 shadow-md shadow-cyan-500/20 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <span>{checkinStep === CHECKIN_QUESTIONS.length ? "Review answers" : "Continue"}</span>
                         <ArrowRight className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* STEP 5: MOOD QUESTION (From Image 1) */}
-                {checkinStep === 5 && (
-                  <div className="mt-8 flex flex-col gap-6">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 font-mono text-xs font-bold border border-cyan-500/40">
-                        05
-                      </span>
+                {checkinReviewing && (
+                  <div className="mt-8 flex flex-col gap-6" aria-live="polite">
+                    <div>
                       <span className="font-mono text-xs font-bold uppercase tracking-widest text-cyan-600 dark:text-cyan-400">
-                        MOOD
+                        REVIEW
                       </span>
+                      <h2 className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+                        Check your answers before saving
+                      </h2>
+                      <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                        Your responses stay on this device with the latest check-in record.
+                      </p>
                     </div>
 
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                      How are you feeling overall today?
-                    </h2>
+                    <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {CHECKIN_QUESTIONS.map((question) => (
+                        <div
+                          key={question.key}
+                          className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950"
+                        >
+                          <dt className="font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            {question.eyebrow}
+                          </dt>
+                          <dd className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+                            {checkInAnswers[question.key]}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
 
-                    {/* 5 Mood Cards */}
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                      {[
-                        { label: "Very low", symbol: "😡" },
-                        { label: "Low", symbol: "🕒" },
-                        { label: "Okay", symbol: "🔵" },
-                        { label: "Good", symbol: "📑" },
-                        { label: "Great", symbol: "🤩" },
-                      ].map((item) => {
-                        const isSelected = overallMood === item.label;
-                        return (
-                          <button
-                            key={item.label}
-                            onClick={() => setOverallMood(item.label)}
-                            className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all ${
-                              isSelected
-                                ? "border-cyan-500 bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 font-bold ring-2 ring-cyan-500/30 shadow-md"
-                                : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 text-slate-700 dark:text-slate-300 hover:border-cyan-400"
-                            }`}
-                          >
-                            <span className="text-2xl mb-2">{item.symbol}</span>
-                            <span className="text-xs font-semibold">{item.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Textfield: Anything else you'd like to share? */}
-                    <div className="mt-4 flex flex-col gap-2">
-                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                        Anything else you&apos;d like to share? <span className="font-normal text-slate-500">Optional</span>
-                      </label>
-                      <textarea
-                        rows={3}
-                        value={customNote}
-                        onChange={(e) => setCustomNote(e.target.value)}
-                        placeholder="Keep it as general or as specific as you feel comfortable..."
-                        className="w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-4 text-xs font-sans text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-cyan-500 transition"
-                      />
-                      {noteNlp.wordCount > 0 && (
-                        <p className="text-[11px] text-slate-500">
-                          On-device NLP: {noteNlp.mood}
-                          {noteNlp.cues.length ? ` · ${noteNlp.cues.join(", ")}` : ""}. The note itself is not uploaded.
-                        </p>
-                      )}
-                      {noteNlp.crisisFlag && (
-                        <a href="tel:988" className="text-[11px] font-bold text-rose-500">
-                          If you feel unsafe, call 988. This text stays on your device.
-                        </a>
-                      )}
-                    </div>
-
-                    {/* Action buttons */}
-                    <div className="mt-6 flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-4">
+                    <div className="flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-800">
                       <button
-                        onClick={() => setCheckinStep(4)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 font-mono text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                        type="button"
+                        onClick={() => setCheckinReviewing(false)}
+                        className="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 font-mono text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                       >
-                        ← Back
+                        <ArrowLeft className="h-4 w-4" /> Back
                       </button>
-
                       <button
+                        type="button"
                         onClick={handleCompleteCheckin}
-                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 font-mono text-xs font-bold text-slate-950 shadow-md shadow-cyan-500/20 transition active:scale-95"
+                        disabled={checkinCompleted}
+                        className="flex items-center gap-2 rounded-xl bg-cyan-500 px-6 py-2.5 font-mono text-xs font-bold text-slate-950 shadow-md shadow-cyan-500/20 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-70"
                       >
-                        <span>{checkinCompleted ? "✓ Saved!" : "Complete check-in ✓"}</span>
+                        <span>{checkinCompleted ? "Saved!" : "Save check-in"}</span>
+                        <CheckCircle2 className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -663,6 +774,34 @@ export default function WellnessHub() {
                     <p className="mt-1 font-mono text-[10px] text-slate-500">
                       Face {lastScan.face.mood} · Voice {lastScan.voice.mood} · NLP {lastScan.nlp.mood}
                     </p>
+                  </div>
+                )}
+
+                {lastScan?.checkIn && (
+                  <div className="mb-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                        Latest self-report
+                      </span>
+                      <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400">
+                        {new Date(lastScan.checkIn.completedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-[11px] sm:grid-cols-3">
+                      {[
+                        ["Mood", lastScan.checkIn.mood],
+                        ["Stress", lastScan.checkIn.stress],
+                        ["Workload", lastScan.checkIn.workload],
+                        ["Sleep", lastScan.checkIn.sleep],
+                        ["Energy", lastScan.checkIn.energy],
+                        ["Resting HR", lastScan.checkIn.restingHeartRate],
+                      ].map(([label, value]) => (
+                        <div key={label}>
+                          <dt className="text-slate-500 dark:text-slate-400">{label}</dt>
+                          <dd className="mt-0.5 font-semibold text-slate-900 dark:text-white">{value}</dd>
+                        </div>
+                      ))}
+                    </dl>
                   </div>
                 )}
 

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-export type ThemeMode = "dark" | "bright";
+export type ThemeMode = "dark" | "bright" | "mid";
 
 interface ThemeContextType {
   theme: ThemeMode;
@@ -19,8 +19,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     try {
-      const saved = (localStorage.getItem("rakshak-theme-mode") || localStorage.getItem("nexus-theme-mode")) as ThemeMode | null;
-      if (saved === "dark" || saved === "bright") {
+      const saved = (localStorage.getItem("nexus-theme-mode") || localStorage.getItem("rakshak-theme-mode")) as ThemeMode | null;
+      if (saved === "dark" || saved === "bright" || saved === "mid") {
         setThemeState(saved);
       }
     } catch {}
@@ -29,13 +29,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const setTheme = (mode: ThemeMode) => {
     setThemeState(mode);
     try {
-      localStorage.setItem("rakshak-theme-mode", mode);
+      localStorage.setItem("nexus-theme-mode", mode);
     } catch {}
   };
 
   const cycleTheme = () => {
-    // Only 2 modes: dark <-> bright
-    const next: ThemeMode = theme === "dark" ? "bright" : "dark";
+    // 3 modes: dark -> bright -> mid -> dark
+    const next: ThemeMode =
+      theme === "dark" ? "bright" : theme === "bright" ? "mid" : "dark";
     setTheme(next);
   };
 

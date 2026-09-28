@@ -260,22 +260,22 @@ export default function EmployeeDashboard() {
           <div
             className={`rounded-2xl p-5 border transition-all ${
               theme === "bright"
-                ? "bg-white border-slate-200/90 shadow-sm text-slate-900"
+                ? "bg-gradient-to-br from-white via-slate-50 to-sky-50/80 border-sky-200/80 shadow-[0_4px_20px_rgba(14,165,233,0.12)] text-slate-900 hover:shadow-[0_6px_25px_rgba(14,165,233,0.2)]"
                 : "bg-[#0b1622] border-slate-800/90 shadow-md text-slate-100"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Sleep</span>
-              <div className="h-8 w-8 rounded-full bg-cyan-100 dark:bg-cyan-950/60 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Sleep</span>
+              <div className="h-9 w-9 rounded-xl bg-cyan-500/15 dark:bg-cyan-950/60 flex items-center justify-center text-cyan-600 dark:text-cyan-400 border border-cyan-400/30">
                 <Moon className="h-4 w-4" />
               </div>
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight">
+              <span className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-slate-900 dark:text-white">
                 {metrics.sleepHours}h
               </span>
             </div>
-            <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+            <div className="mt-2 flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
               <TrendingUp className="h-3.5 w-3.5" />
               <span>{metrics.sleepChange}</span>
             </div>
@@ -285,23 +285,23 @@ export default function EmployeeDashboard() {
           <div
             className={`rounded-2xl p-5 border transition-all ${
               theme === "bright"
-                ? "bg-white border-slate-200/90 shadow-sm text-slate-900"
+                ? "bg-gradient-to-br from-white via-slate-50 to-amber-50/80 border-amber-200/80 shadow-[0_4px_20px_rgba(245,158,11,0.12)] text-slate-900 hover:shadow-[0_6px_25px_rgba(245,158,11,0.2)]"
                 : "bg-[#0b1622] border-slate-800/90 shadow-md text-slate-100"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Stress</span>
-              <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Stress</span>
+              <div className="h-9 w-9 rounded-xl bg-amber-500/15 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400 border border-amber-400/30">
                 <Sliders className="h-4 w-4" />
               </div>
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight">
+              <span className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-slate-900 dark:text-white">
                 {metrics.stressScore}
               </span>
               <span className="text-xs text-slate-500 font-mono">/5</span>
             </div>
-            <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+            <div className="mt-2 flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
               <TrendingDown className="h-3.5 w-3.5" />
               <span>{metrics.stressChange}</span>
             </div>
@@ -311,23 +311,23 @@ export default function EmployeeDashboard() {
           <div
             className={`rounded-2xl p-5 border transition-all ${
               theme === "bright"
-                ? "bg-white border-slate-200/90 shadow-sm text-slate-900"
+                ? "bg-gradient-to-br from-white via-slate-50 to-indigo-50/80 border-indigo-200/80 shadow-[0_4px_20px_rgba(99,102,241,0.12)] text-slate-900 hover:shadow-[0_6px_25px_rgba(99,102,241,0.2)]"
                 : "bg-[#0b1622] border-slate-800/90 shadow-md text-slate-100"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Workload</span>
-              <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Workload</span>
+              <div className="h-9 w-9 rounded-xl bg-indigo-500/15 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 border border-indigo-400/30">
                 <Briefcase className="h-4 w-4" />
               </div>
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight">
+              <span className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-slate-900 dark:text-white">
                 {metrics.workloadScore}
               </span>
               <span className="text-xs text-slate-500 font-mono">/5</span>
             </div>
-            <div className={`mt-2 flex items-center gap-1 text-xs font-semibold ${
+            <div className={`mt-2 flex items-center gap-1 text-xs font-bold ${
               metrics.workloadPositive ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
             }`}>
               <TrendingDown className="h-3.5 w-3.5" />
@@ -339,23 +339,23 @@ export default function EmployeeDashboard() {
           <div
             className={`rounded-2xl p-5 border transition-all ${
               theme === "bright"
-                ? "bg-white border-slate-200/90 shadow-sm text-slate-900"
+                ? "bg-gradient-to-br from-white via-slate-50 to-emerald-50/80 border-emerald-200/80 shadow-[0_4px_20px_rgba(16,185,129,0.12)] text-slate-900 hover:shadow-[0_6px_25px_rgba(16,185,129,0.2)]"
                 : "bg-[#0b1622] border-slate-800/90 shadow-md text-slate-100"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Energy</span>
-              <div className="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Energy</span>
+              <div className="h-9 w-9 rounded-xl bg-emerald-500/15 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 border border-emerald-400/30">
                 <Sparkles className="h-4 w-4" />
               </div>
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight">
+              <span className="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-slate-900 dark:text-white">
                 {metrics.energyScore}
               </span>
               <span className="text-xs text-slate-500 font-mono">/5</span>
             </div>
-            <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+            <div className="mt-2 flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
               <TrendingUp className="h-3.5 w-3.5" />
               <span>{metrics.energyChange}</span>
             </div>

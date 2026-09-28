@@ -96,7 +96,7 @@ export default function MissionReview() {
   return (
     <div
       className={`flex flex-col min-h-screen font-sans transition-colors duration-300 ${theme === "bright"
-          ? "bg-[#edf2f7] text-[#0f172a]"
+          ? "bg-transparent text-[#10172D]"
           : "bg-[#050b11] text-slate-100"
         }`}
     >

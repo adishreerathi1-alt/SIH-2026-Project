@@ -33,6 +33,17 @@ export interface NlpReading {
   cues: string[];
 }
 
+export interface WellnessCheckIn {
+  mood: string;
+  stress: string;
+  workload: string;
+  sleep: string;
+  energy: string;
+  restingHeartRate: string;
+  note?: string;
+  completedAt: string;
+}
+
 export interface CombinedScan {
   overallMood: SimpleMood;
   stressScore: number;
@@ -41,6 +52,7 @@ export interface CombinedScan {
   voice: VoiceReading;
   nlp: NlpReading;
   at: string;
+  checkIn?: WellnessCheckIn;
 }
 
 export const LAST_SCAN_KEY = "rakshak-last-scan";
